@@ -1,0 +1,192 @@
+﻿@model IEnumerable<Joke>
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://code.jquery.com/jquery-3.5.1.js" integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc=" crossorigin="anonymous"></script>
+    <script>
+        var settings = {
+
+            baseURL: "https://v2.jokeapi.dev",
+            Endpoint: "joke",
+            anyCategoryName: "Any",
+        };
+        var tryItURL = "";
+        window.onload = function () { reRender(); };
+
+        function reRender() {
+
+            var isValid = false;
+            document.getElementsByName("category").forEach(function (el) {
+                if (!el.checked)
+                    return;
+
+                if (el.value == "Any") {
+                    isValid = true;
+                    ["cat-cb1", "cat-cb2", "cat-cb3", "cat-cb4", "cat-cb5", "cat-cb6"].forEach(function (cat) {
+                        document.getElementById(cat).disabled = true;
+                    });
+                }
+                else {
+                    var isChecked = false;
+                    ["cat-cb1", "cat-cb2", "cat-cb3", "cat-cb4", "cat-cb5", "cat-cb6"].forEach(function (cat) {
+                        var cel = document.getElementById(cat);
+                        cel.disabled = false;
+
+                        if (cel.checked)
+                            isChecked = true;
+                    });
+
+                    if (isChecked)
+                        isValid = true;
+                }
+            });
+
+
+            buildURL();
+
+        }
+
+        //#MARKER build URL
+        function buildURL() {
+            var queryParams = [];
+
+            //#SECTION categories
+            var selectedCategories = [settings.anyCategoryName];
+            if (document.getElementById("Custom").checked) {
+                selectedCategories = [];
+                if (document.getElementById("cat-cb1").checked) {
+                    selectedCategories.push("Programming");
+                }
+                if (document.getElementById("cat-cb2").checked) {
+                    selectedCategories.push("Miscellaneous");
+                }
+                if (document.getElementById("cat-cb3").checked) {
+                    selectedCategories.push("Dark");
+                }
+                if (document.getElementById("cat-cb4").checked) {
+                    selectedCategories.push("Pun");
+                }
+                if (document.getElementById("cat-cb5").checked) {
+                    selectedCategories.push("Spooky");
+                }
+                if (document.getElementById("cat-cb6").checked) {
+                    selectedCategories.push("Christmas");
+                }
+
+                if (selectedCategories.length == 0) {
+                    selectedCategories.push(settings.anyCategoryName);
+                }
+            }
+
+            tryItURL = settings.baseURL + "/" + settings.Endpoint + "/" + selectedCategories.join(",");
+           // tryItURL =  selectedCategories.join(",");
+            if (queryParams.length > 0) {
+                tryItURL += "?" + queryParams.join("&");
+            }
+
+
+            document.getElementById("urlBuilderUrl").innerText = tryItURL;
+
+              $.ajax({
+
+            type: "POST",
+            url: "@Url.Action("GetRequestURL")",
+
+
+                  data: { newData: tryItURL },
+                  dataType: "text",
+            success: function (data) {
+                console.log("Success");
+            },
+            failure: function (errMsg) {
+                console.log("Failed");
+            }
+        });
+        }
+       // var testString = settings.baseURL + "/" + settings.Endpoint + "/" + selectedCategories.join(",");
+
+
+    </script>
+</head>
+<body>
+    <form method="post" enctype="multipart/form-data" asp-action="GetRequestURL" asp-controller="Jokes">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <div class="form-group">
+            <label for="category" class="control-label"> Select category/categories</label>
+            @*<input type="radio" value="Any" /> Any
+        <input type="radio" value="Custom" name="Custom" /> Custom:*@
+
+            <div><input type="radio" name="category" value="Any" checked="checked" id="Any" class="control-label" checked="checked" onchange="reRender()" /> Any</div>
+            <div>
+                <input type="radio" name="category" value="Custom" class="control-label" id="Custom" onchange="reRender()" /> Custom:
+                <input type="checkbox" name="customcategory" id="cat-cb1" value="Programming" class="control-label" onchange="reRender()" /> Programming
+                <input type="checkbox" name="customcategory" id="cat-cb2" value="Misc" class="control-label" onchange="reRender()" /> Misc
+                <input type="checkbox" name="customcategory" id="cat-cb3" value="Dark" class="control-label" onchange="reRender()" /> Dark
+                <input type="checkbox" name="customcategory" id="cat-cb4" value="Pun" class="control-label" onchange="reRender()" /> Pun
+                <input type="checkbox" name="customcategory" id="cat-cb5" value="Spooky" class="control-label" onchange="reRender()" /> Spooky
+                <input type="checkbox" name="customcategory" id="cat-cb6" value="Christmas" class="control-label" onchange="reRender()" /> Christmas
+            </div>
+            <div class="form-group">
+                <span id="urlBuilderUrl">/Jokes/GetRequestURL</span>
+                @*<button id="urlBuilderUrl" type="submit" class="btn btn-sm btn-primary">/Jokes/GetRequestURL</button>*@
+            </div>
+
+            <table class="table table-sm table-striped table-bordered m-2">
+                @if (Model != null)
+                {
+                    <tbody>
+                        @foreach (var joke in Model)
+                        {
+                            <tr>
+                                <td>@joke.id</td>
+                                <td>@joke.type</td>
+                                <td>@joke.delivery</td>
+                                <td>@joke.flags</td>
+                                <td>@joke.joke</td>
+
+                            </tr>
+                        }
+                    </tbody>
+                }
+            </table>
+
+        </div>
+        </form>
+           
+    @*<table class="table table-sm table-striped table-bordered m-2">
+        @if(Model != null)
+        {
+        <tbody>
+            @foreach (var joke in Model)
+            {
+    <tr>
+        <td>@joke.id</td>
+        <td>@joke.type</td>
+        <td>@joke.delivery</td>
+        <td>@joke.flags</td>
+        <td>@joke.joke</td>
+       
+    </tr>
+    }
+        </tbody>
+        }
+    </table>*@
+
+   
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
